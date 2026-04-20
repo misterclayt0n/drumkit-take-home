@@ -52,10 +52,19 @@ make tidy
 ## Endpoints
 
 - `GET /healthz`
-- `GET /api/shipments`
+- `GET /v1/loads`
 
 Example:
 
 ```bash
-curl "$BACKEND_URL:$PORT/api/shipments"
+curl "$BACKEND_URL:$PORT/v1/loads"
 ```
+
+Optional query params:
+
+- `status`
+- `customerId`
+- `pickupDateSearchFrom` (YYYY-MM-DD)
+- `pickupDateSearchTo` (YYYY-MM-DD)
+- `page`
+- `limit`

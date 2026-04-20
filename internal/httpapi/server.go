@@ -3,10 +3,13 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
+	"drumkit-take-home/internal/load"
 	"drumkit-take-home/internal/turvo"
 )
 
@@ -21,7 +24,7 @@ func NewServer(turvoClient *turvo.Client) *Server {
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.handleHealthz)
-	mux.HandleFunc("/api/shipments", s.handleListShipments)
+	mux.HandleFunc("/v1/loads", s.handleListLoads)
 	return s.withMiddleware(mux)
 }
 
@@ -40,7 +43,7 @@ func (s *Server) handleHealthz(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) handleListShipments(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListLoads(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
 		return
@@ -50,12 +53,20 @@ func (s *Server) handleListShipments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 90*time.Second)
+	params, err := listParamsFromRequest(r)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
 	defer cancel()
 
-	result, err := s.turvoClient.ListAllShipments(ctx)
+	result, err := s.turvoClient.ListLoads(ctx, params)
 	if err != nil {
-		log.Printf("list shipments failed: %v", err)
+		log.Printf("list loads failed: %v", err)
 		writeJSON(w, http.StatusBadGateway, map[string]any{
 			"error": err.Error(),
 		})
@@ -75,6 +86,44 @@ func (s *Server) withMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(started))
 	})
+}
+
+func listParamsFromRequest(r *http.Request) (load.ListParams, error) {
+	page, err := positiveIntQueryParam(r, "page", 1)
+	if err != nil {
+		return load.ListParams{}, err
+	}
+
+	limit, err := positiveIntQueryParam(r, "limit", 20)
+	if err != nil {
+		return load.ListParams{}, err
+	}
+	if limit > 100 {
+		return load.ListParams{}, fmt.Errorf("limit must be less than or equal to 100")
+	}
+
+	return load.ListParams{
+		Status:               r.URL.Query().Get("status"),
+		CustomerID:           r.URL.Query().Get("customerId"),
+		PickupDateSearchFrom: r.URL.Query().Get("pickupDateSearchFrom"),
+		PickupDateSearchTo:   r.URL.Query().Get("pickupDateSearchTo"),
+		Page:                 page,
+		Limit:                limit,
+	}, nil
+}
+
+func positiveIntQueryParam(r *http.Request, key string, fallback int) (int, error) {
+	value := r.URL.Query().Get(key)
+	if value == "" {
+		return fallback, nil
+	}
+
+	parsed, err := strconv.Atoi(value)
+	if err != nil || parsed < 1 {
+		return 0, fmt.Errorf("%s must be a positive integer", key)
+	}
+
+	return parsed, nil
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
