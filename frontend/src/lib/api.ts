@@ -32,6 +32,15 @@ export async function listLoads(params: ListLoadsParams): Promise<LoadsResponse>
   if (params.status) {
     searchParams.set('status', params.status)
   }
+  if (params.customerId) {
+    searchParams.set('customerId', params.customerId)
+  }
+  if (params.pickupDateSearchFrom) {
+    searchParams.set('pickupDateSearchFrom', params.pickupDateSearchFrom)
+  }
+  if (params.pickupDateSearchTo) {
+    searchParams.set('pickupDateSearchTo', params.pickupDateSearchTo)
+  }
 
   return apiRequest<LoadsResponse>(`/v1/loads?${searchParams.toString()}`, {
     method: 'GET',

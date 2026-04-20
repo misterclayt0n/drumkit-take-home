@@ -3,23 +3,27 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"drumkit-take-home/internal/drumkitstore"
 	"drumkit-take-home/internal/load"
 	"drumkit-take-home/internal/turvo"
 )
 
 type Server struct {
 	turvoClient *turvo.Client
+	loadStore   *drumkitstore.Store
 }
 
-func NewServer(turvoClient *turvo.Client) *Server {
-	return &Server{turvoClient: turvoClient}
+func NewServer(turvoClient *turvo.Client, loadStore *drumkitstore.Store) *Server {
+	return &Server{turvoClient: turvoClient, loadStore: loadStore}
 }
 
 func (s *Server) Routes() http.Handler {
@@ -74,6 +78,9 @@ func (s *Server) handleListLoads(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	if s.loadStore != nil {
+		result.Data = s.loadStore.MergeList(result.Data)
+	}
 
 	writeJSON(w, http.StatusOK, result)
 }
@@ -97,6 +104,12 @@ func (s *Server) handleCreateLoad(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	if err := decoder.Decode(&struct{}{}); err != nil && !errors.Is(err, io.EOF) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid request body: request body must contain a single JSON object",
+		})
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
 	defer cancel()
@@ -112,6 +125,11 @@ func (s *Server) handleCreateLoad(w http.ResponseWriter, r *http.Request) {
 			"error": err.Error(),
 		})
 		return
+	}
+	if s.loadStore != nil {
+		if err := s.loadStore.Save(strconv.Itoa(result.ID), input); err != nil {
+			log.Printf("persist created load failed turvo_id=%d: %v", result.ID, err)
+		}
 	}
 
 	writeJSON(w, http.StatusCreated, result)

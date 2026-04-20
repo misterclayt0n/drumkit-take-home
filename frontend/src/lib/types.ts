@@ -137,4 +137,7 @@ export interface ListLoadsParams {
   page: number
   limit: number
   status?: string
+  customerId?: string
+  pickupDateSearchFrom?: string
+  pickupDateSearchTo?: string
 }

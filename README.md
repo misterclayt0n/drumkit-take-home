@@ -28,11 +28,13 @@ TURVO_CLIENT_NAME=...
 TURVO_CLIENT_SECRET=...
 TURVO_USERNAME=...
 TURVO_PASSWORD=...
+LOAD_STORE_PATH=.data/drumkit-loads.json
 ```
 
 Notes:
 - `TURVO_BASE_URL` should stay on the `publicapi` host for API calls.
 - The Turvo web login URL can be different from the API base URL.
+- `LOAD_STORE_PATH` preserves the exact Drumkit load payload for created loads so list responses can mirror the Drumkit schema even when Turvo lacks native fields.
 
 ## Run
 

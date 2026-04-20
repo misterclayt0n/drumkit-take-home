@@ -18,6 +18,7 @@ type Config struct {
 	TurvoClientSecret string
 	TurvoUsername     string
 	TurvoPassword     string
+	LoadStorePath     string
 }
 
 func Load() (Config, error) {
@@ -42,6 +43,7 @@ func Load() (Config, error) {
 		TurvoClientSecret: os.Getenv("TURVO_CLIENT_SECRET"),
 		TurvoUsername:     os.Getenv("TURVO_USERNAME"),
 		TurvoPassword:     os.Getenv("TURVO_PASSWORD"),
+		LoadStorePath:     getenvDefault("LOAD_STORE_PATH", ".data/drumkit-loads.json"),
 	}
 
 	if err := cfg.Validate(); err != nil {

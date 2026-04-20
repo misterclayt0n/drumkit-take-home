@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"drumkit-take-home/internal/config"
+	"drumkit-take-home/internal/drumkitstore"
 	"drumkit-take-home/internal/httpapi"
 	"drumkit-take-home/internal/turvo"
 )
@@ -17,7 +18,11 @@ func main() {
 	}
 
 	turvoClient := turvo.NewClient(cfg)
-	server := httpapi.NewServer(turvoClient)
+	loadStore, err := drumkitstore.New(cfg.LoadStorePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	server := httpapi.NewServer(turvoClient, loadStore)
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
