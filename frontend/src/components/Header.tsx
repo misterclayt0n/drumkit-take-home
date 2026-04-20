@@ -9,20 +9,6 @@ export default function Header() {
           </span>
         </a>
 
-        <nav className="flex items-center gap-1">
-          <a
-            href="#loads"
-            className="rounded-lg px-3 py-1.5 text-sm text-[var(--dk-ink-soft)] transition-colors hover:bg-[var(--dk-surface-raised)] hover:text-[var(--dk-ink)]"
-          >
-            Loads
-          </a>
-          <a
-            href="#create"
-            className="rounded-lg px-3 py-1.5 text-sm text-[var(--dk-ink-soft)] transition-colors hover:bg-[var(--dk-surface-raised)] hover:text-[var(--dk-ink)]"
-          >
-            Create
-          </a>
-        </nav>
       </div>
     </header>
   )
