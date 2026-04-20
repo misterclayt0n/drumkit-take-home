@@ -69,7 +69,7 @@ func (s *Server) handleListLoads(w http.ResponseWriter, r *http.Request) {
 	result, err := s.turvoClient.ListLoads(ctx, params)
 	if err != nil {
 		log.Printf("list loads failed: %v", err)
-		writeJSON(w, http.StatusBadGateway, map[string]any{
+		writeJSON(w, http.StatusInternalServerError, map[string]any{
 			"error": err.Error(),
 		})
 		return
@@ -103,7 +103,7 @@ func (s *Server) handleCreateLoad(w http.ResponseWriter, r *http.Request) {
 
 	result, err := s.turvoClient.CreateLoad(ctx, input)
 	if err != nil {
-		status := http.StatusBadGateway
+		status := http.StatusInternalServerError
 		if isCreateLoadValidationError(err) {
 			status = http.StatusBadRequest
 		}
