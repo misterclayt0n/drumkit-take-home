@@ -77,9 +77,11 @@ const columns: ColumnDef<Load>[] = [
 export function LoadTable({
   data,
   isLoading,
+  onSelectLoad,
 }: {
   data: Load[]
   isLoading: boolean
+  onSelectLoad?: (load: Load) => void
 }) {
   const table = useReactTable({
     data,
@@ -128,7 +130,8 @@ export function LoadTable({
           {table.getRowModel().rows.map((row) => (
             <TableRow
               key={row.id}
-              className="border-[var(--dk-line)] transition-colors hover:bg-[var(--dk-surface-raised)]"
+              className="cursor-pointer border-[var(--dk-line)] transition-colors hover:bg-[var(--dk-surface-raised)]"
+              onClick={() => onSelectLoad?.(row.original)}
             >
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id} className="px-4 py-3 align-top">
@@ -170,9 +173,7 @@ function LoadTableSkeleton() {
 }
 
 function StatusPill({ status }: { status: string }) {
-  const normalized = status.toLowerCase()
-  const isActive = normalized === 'tendered'
-
+  const isActive = status.toLowerCase() === 'tendered'
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${

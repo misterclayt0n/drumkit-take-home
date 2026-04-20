@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Plus, RotateCw, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { CreateLoadForm } from '#/components/create-load-form'
+import { LoadDetailModal } from '#/components/load-detail-modal'
 import { LoadTable } from '#/components/load-table'
 import { Button } from '#/components/ui/button'
 import { createLoad, listLoads } from '#/lib/api'
@@ -17,6 +18,7 @@ function App() {
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState('')
   const [showCreatePanel, setShowCreatePanel] = useState(false)
+  const [selectedLoad, setSelectedLoad] = useState<Load | null>(null)
 
   const loadsQuery = useQuery({
     queryKey: ['loads', { page, status, limit: PAGE_SIZE }],
@@ -44,6 +46,8 @@ function App() {
     return { customers, total: pagination?.total ?? 0 }
   }, [loads, pagination])
 
+  const closeModal = useCallback(() => setSelectedLoad(null), [])
+
   return (
     <main id="top" className="overflow-x-hidden w-full max-w-full">
       {/* Top bar with stats and actions */}
@@ -68,7 +72,6 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Status filter */}
             <div className="relative">
               <select
                 value={status}
@@ -85,7 +88,6 @@ function App() {
               <ChevronRight className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 rotate-90 text-[var(--dk-ink-soft)]" />
             </div>
 
-            {/* Refresh */}
             <Button
               variant="outline"
               onClick={() => loadsQuery.refetch()}
@@ -96,16 +98,11 @@ function App() {
               <span className="hidden sm:inline">Refresh</span>
             </Button>
 
-            {/* Create button */}
             <Button
               onClick={() => setShowCreatePanel(!showCreatePanel)}
               className="h-9 gap-1.5 rounded-lg bg-[var(--dk-ink)] px-3.5 text-sm font-medium text-white hover:bg-[var(--dk-ink)]/90"
             >
-              {showCreatePanel ? (
-                <X className="size-3.5" />
-              ) : (
-                <Plus className="size-3.5" />
-              )}
+              {showCreatePanel ? <X className="size-3.5" /> : <Plus className="size-3.5" />}
               {showCreatePanel ? 'Close' : 'New load'}
             </Button>
           </div>
@@ -126,9 +123,12 @@ function App() {
               </div>
             )}
 
-            <LoadTable data={loads} isLoading={loadsQuery.isLoading || loadsQuery.isFetching} />
+            <LoadTable
+              data={loads}
+              isLoading={loadsQuery.isLoading || loadsQuery.isFetching}
+              onSelectLoad={setSelectedLoad}
+            />
 
-            {/* Pagination */}
             {pagination && pagination.pages > 1 && (
               <div className="flex items-center justify-between rounded-xl border border-[var(--dk-line)] bg-white px-4 py-3">
                 <p className="text-sm text-[var(--dk-ink-soft)]">
@@ -161,7 +161,6 @@ function App() {
             )}
           </div>
 
-          {/* Create panel - slides in */}
           {showCreatePanel && (
             <div id="create">
               <CreateLoadForm
@@ -176,6 +175,9 @@ function App() {
           )}
         </div>
       </section>
+
+      {/* Detail modal */}
+      <LoadDetailModal load={selectedLoad} onClose={closeModal} />
     </main>
   )
 }
