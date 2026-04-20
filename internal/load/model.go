@@ -174,3 +174,8 @@ type Pagination struct {
 	Page  int `json:"page"`
 	Limit int `json:"limit"`
 }
+
+type CreateResponse struct {
+	ID        int    `json:"id"`
+	CreatedAt string `json:"createdAt"`
+}

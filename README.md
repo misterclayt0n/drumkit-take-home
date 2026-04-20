@@ -53,8 +53,9 @@ make tidy
 
 - `GET /healthz`
 - `GET /v1/loads`
+- `POST /v1/integrations/webhooks/loads`
 
-Example:
+List example:
 
 ```bash
 curl "$BACKEND_URL:$PORT/v1/loads"
@@ -68,3 +69,36 @@ Optional query params:
 - `pickupDateSearchTo` (YYYY-MM-DD)
 - `page`
 - `limit`
+
+Create example:
+
+```bash
+curl -X POST "$BACKEND_URL:$PORT/v1/integrations/webhooks/loads" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "status": "Tendered",
+    "customer": {
+      "externalTMSId": "834045",
+      "name": "37th St Bakery"
+    },
+    "pickup": {
+      "externalTMSId": "525513",
+      "name": "1611 CGT- Rockingham (North Carolina)",
+      "city": "ROCKINGHAM",
+      "state": "NC",
+      "country": "US",
+      "apptTime": "2026-05-01T14:00:00Z",
+      "timezone": "America/New_York"
+    },
+    "consignee": {
+      "externalTMSId": "525541",
+      "name": "AAA TRANS WORLD EXPRESS, INC",
+      "city": "JAMAICA",
+      "state": "NY",
+      "country": "US",
+      "apptTime": "2026-05-02T18:00:00Z",
+      "timezone": "America/New_York"
+    },
+    "poNums": "TEST-PO-1"
+  }'
+```

@@ -69,7 +69,7 @@ func NewClient(cfg config.Config) *Client {
 	return &Client{
 		// Normalize the base URL so path concatenation doesn't produce `//...`
 		// when TURVO_BASE_URL is configured with a trailing slash.
-		// 
+		//
 		// Again, just a reasonable default.
 		baseURL:      strings.TrimRight(cfg.TurvoBaseURL, "/"),
 		apiKey:       cfg.TurvoAPIKey,
@@ -140,12 +140,25 @@ func (c *Client) listShipmentsPage(ctx context.Context, start *int) (listShipmen
 }
 
 func (c *Client) getJSON(ctx context.Context, path string, out any) error {
+	return c.sendJSON(ctx, http.MethodGet, path, nil, out)
+}
+
+func (c *Client) postJSON(ctx context.Context, path string, requestBody any, out any) error {
+	body, err := json.Marshal(requestBody)
+	if err != nil {
+		return fmt.Errorf("marshal request body: %w", err)
+	}
+
+	return c.sendJSON(ctx, http.MethodPost, path, body, out)
+}
+
+func (c *Client) sendJSON(ctx context.Context, method, path string, requestBody []byte, out any) error {
 	token, err := c.token(ctx)
 	if err != nil {
 		return err
 	}
 
-	status, body, err := c.do(ctx, http.MethodGet, path, token, nil)
+	status, body, err := c.do(ctx, method, path, token, requestBody)
 	if err != nil {
 		return err
 	}
@@ -157,14 +170,18 @@ func (c *Client) getJSON(ctx context.Context, path string, out any) error {
 			return err
 		}
 
-		status, body, err = c.do(ctx, http.MethodGet, path, token, nil)
+		status, body, err = c.do(ctx, method, path, token, requestBody)
 		if err != nil {
 			return err
 		}
 	}
 
 	if status < 200 || status >= 300 {
-		return fmt.Errorf("turvo GET %s failed with status %d: %s", path, status, strings.TrimSpace(string(body)))
+		return fmt.Errorf("turvo %s %s failed with status %d: %s", method, path, status, strings.TrimSpace(string(body)))
+	}
+
+	if out == nil {
+		return nil
 	}
 
 	if err := json.Unmarshal(body, out); err != nil {

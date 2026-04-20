@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"drumkit-take-home/internal/load"
@@ -25,6 +26,7 @@ func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.handleHealthz)
 	mux.HandleFunc("/v1/loads", s.handleListLoads)
+	mux.HandleFunc("/v1/integrations/webhooks/loads", s.handleCreateLoad)
 	return s.withMiddleware(mux)
 }
 
@@ -76,10 +78,49 @@ func (s *Server) handleListLoads(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+func (s *Server) handleCreateLoad(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var input load.Load
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&input); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error": fmt.Sprintf("invalid request body: %v", err),
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
+	defer cancel()
+
+	result, err := s.turvoClient.CreateLoad(ctx, input)
+	if err != nil {
+		status := http.StatusBadGateway
+		if isCreateLoadValidationError(err) {
+			status = http.StatusBadRequest
+		}
+		log.Printf("create load failed: %v", err)
+		writeJSON(w, status, map[string]any{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, result)
+}
+
 func (s *Server) withMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		started := time.Now()
@@ -124,6 +165,11 @@ func positiveIntQueryParam(r *http.Request, key string, fallback int) (int, erro
 	}
 
 	return parsed, nil
+}
+
+func isCreateLoadValidationError(err error) bool {
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "is required") || strings.Contains(message, "must be a positive integer") || strings.Contains(message, "must be a valid rfc3339 timestamp")
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
