@@ -65,6 +65,17 @@ type ShipmentsResult struct {
 	Pagination Pagination        `json:"pagination"`
 }
 
+type apiStatusError struct {
+	Method string
+	Path   string
+	Status int
+	Body   string
+}
+
+func (e *apiStatusError) Error() string {
+	return fmt.Sprintf("turvo %s %s failed with status %d: %s", e.Method, e.Path, e.Status, e.Body)
+}
+
 func NewClient(cfg config.Config) *Client {
 	return &Client{
 		// Normalize the base URL so path concatenation doesn't produce `//...`
@@ -177,7 +188,12 @@ func (c *Client) sendJSON(ctx context.Context, method, path string, requestBody 
 	}
 
 	if status < 200 || status >= 300 {
-		return fmt.Errorf("turvo %s %s failed with status %d: %s", method, path, status, strings.TrimSpace(string(body)))
+		return &apiStatusError{
+			Method: method,
+			Path:   path,
+			Status: status,
+			Body:   strings.TrimSpace(string(body)),
+		}
 	}
 
 	if out == nil {

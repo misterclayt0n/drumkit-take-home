@@ -2,11 +2,15 @@ package turvo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"drumkit-take-home/internal/load"
 )
@@ -322,12 +326,14 @@ func (c *Client) fetchShipmentDetails(ctx context.Context, summaries []shipmentS
 	}
 
 	type result struct {
-		index  int
-		detail shipmentDetail
-		err    error
+		index   int
+		detail  shipmentDetail
+		err     error
+		skipped bool
 	}
 
 	results := make([]shipmentDetail, len(summaries))
+	present := make([]bool, len(summaries))
 	jobs := make(chan int)
 	resultCh := make(chan result, len(summaries))
 
@@ -342,8 +348,8 @@ func (c *Client) fetchShipmentDetails(ctx context.Context, summaries []shipmentS
 		go func() {
 			defer wg.Done()
 			for idx := range jobs {
-				detail, err := c.getShipmentDetail(ctx, summaries[idx].ID)
-				resultCh <- result{index: idx, detail: detail, err: err}
+				detail, skipped, err := c.getShipmentDetailWithRetry(ctx, summaries[idx].ID)
+				resultCh <- result{index: idx, detail: detail, err: err, skipped: skipped}
 			}
 		}()
 	}
@@ -362,10 +368,21 @@ func (c *Client) fetchShipmentDetails(ctx context.Context, summaries []shipmentS
 		if result.err != nil {
 			return nil, result.err
 		}
+		if result.skipped {
+			continue
+		}
 		results[result.index] = result.detail
+		present[result.index] = true
 	}
 
-	return results, nil
+	filtered := make([]shipmentDetail, 0, len(results))
+	for idx, detail := range results {
+		if present[idx] {
+			filtered = append(filtered, detail)
+		}
+	}
+
+	return filtered, nil
 }
 
 func (c *Client) getShipmentDetail(ctx context.Context, shipmentID int) (shipmentDetail, error) {
@@ -374,6 +391,50 @@ func (c *Client) getShipmentDetail(ctx context.Context, shipmentID int) (shipmen
 		return shipmentDetail{}, err
 	}
 	return response.Details, nil
+}
+
+func (c *Client) getShipmentDetailWithRetry(ctx context.Context, shipmentID int) (shipmentDetail, bool, error) {
+	const maxAttempts = 3
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		detail, err := c.getShipmentDetail(ctx, shipmentID)
+		if err == nil {
+			return detail, false, nil
+		}
+
+		var statusErr *apiStatusError
+		if !errors.As(err, &statusErr) || !shouldRetryShipmentDetail(statusErr.Status) {
+			return shipmentDetail{}, false, err
+		}
+
+		log.Printf("shipment detail retry shipment_id=%d attempt=%d status=%d", shipmentID, attempt, statusErr.Status)
+		if attempt == maxAttempts {
+			log.Printf("shipment detail skipped shipment_id=%d retries=%d status=%d", shipmentID, attempt, statusErr.Status)
+			return shipmentDetail{}, true, nil
+		}
+
+		if err := sleepWithContext(ctx, time.Duration(attempt)*250*time.Millisecond); err != nil {
+			return shipmentDetail{}, false, err
+		}
+	}
+
+	return shipmentDetail{}, true, nil
+}
+
+func shouldRetryShipmentDetail(status int) bool {
+	return status == http.StatusBadGateway || status == http.StatusServiceUnavailable || status == http.StatusGatewayTimeout
+}
+
+func sleepWithContext(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func filterSummaries(summaries []shipmentSummary, params load.ListParams) []shipmentSummary {
