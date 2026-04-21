@@ -7,9 +7,6 @@ export default function Footer() {
         <p className="m-0">
           Drumkit take-home &middot; TanStack Start + Go backend
         </p>
-        <p className="m-0 font-mono text-[11px]">
-          {getApiBaseUrl()}
-        </p>
       </div>
     </footer>
   )
