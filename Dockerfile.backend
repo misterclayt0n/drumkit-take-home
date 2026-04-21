@@ -1,0 +1,24 @@
+FROM golang:1.26 AS build
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY cmd ./cmd
+COPY internal ./internal
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/api ./cmd/api
+
+FROM gcr.io/distroless/base-debian12
+WORKDIR /app
+
+COPY --from=build /out/api /app/api
+
+ENV PORT=8080
+ENV BACKEND_URL=http://localhost
+ENV PROVIDER=turvo
+ENV LOAD_STORE_PATH=/tmp/drumkit-loads.json
+
+EXPOSE 8080
+
+CMD ["/app/api"]
