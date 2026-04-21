@@ -169,10 +169,11 @@ type ListResponse struct {
 }
 
 type Pagination struct {
-	Total int `json:"total"`
-	Pages int `json:"pages"`
-	Page  int `json:"page"`
-	Limit int `json:"limit"`
+	Total       int  `json:"total"`
+	Pages       int  `json:"pages"`
+	Page        int  `json:"page"`
+	Limit       int  `json:"limit"`
+	Approximate bool `json:"approximate"`
 }
 
 type CreateResponse struct {

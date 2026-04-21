@@ -125,6 +125,7 @@ export interface LoadsResponse {
     pages: number
     page: number
     limit: number
+    approximate: boolean
   }
 }
 

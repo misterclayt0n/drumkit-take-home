@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Plus, RotateCw } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CreateLoadForm } from '#/components/create-load-form'
 import { LoadDetailModal } from '#/components/load-detail-modal'
 import { LoadTable } from '#/components/load-table'
@@ -25,20 +25,22 @@ function App() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedLoad, setSelectedLoad] = useState<Load | null>(null)
 
+  const listParams = {
+    page,
+    limit: pageSize,
+    status: status || undefined,
+    customerId: customerId || undefined,
+    pickupDateSearchFrom: pickupDateSearchFrom || undefined,
+    pickupDateSearchTo: pickupDateSearchTo || undefined,
+  }
+
   const loadsQuery = useQuery({
     queryKey: [
       'loads',
       { page, pageSize, status, customerId, pickupDateSearchFrom, pickupDateSearchTo },
     ],
-    queryFn: () =>
-      listLoads({
-        page,
-        limit: pageSize,
-        status: status || undefined,
-        customerId: customerId || undefined,
-        pickupDateSearchFrom: pickupDateSearchFrom || undefined,
-        pickupDateSearchTo: pickupDateSearchTo || undefined,
-      }),
+    queryFn: () => listLoads(listParams),
+    placeholderData: keepPreviousData,
   })
 
   const createMutation = useMutation({
@@ -51,6 +53,27 @@ function App() {
 
   const loads = loadsQuery.data?.data ?? []
   const pagination = loadsQuery.data?.pagination
+
+  useEffect(() => {
+    if (!pagination || page >= pagination.pages) {
+      return
+    }
+
+    void queryClient.prefetchQuery({
+      queryKey: [
+        'loads',
+        {
+          page: page + 1,
+          pageSize,
+          status,
+          customerId,
+          pickupDateSearchFrom,
+          pickupDateSearchTo,
+        },
+      ],
+      queryFn: () => listLoads({ ...listParams, page: page + 1 }),
+    })
+  }, [queryClient, pagination, page, pageSize, status, customerId, pickupDateSearchFrom, pickupDateSearchTo])
 
   const stats = useMemo(() => {
     const customers = new Set(loads.map((l) => l.customer.name).filter(Boolean)).size

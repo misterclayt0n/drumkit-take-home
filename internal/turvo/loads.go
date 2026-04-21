@@ -242,13 +242,6 @@ func (v *flexibleInt) UnmarshalJSON(data []byte) error {
 }
 
 func (c *Client) ListLoads(ctx context.Context, params load.ListParams) (load.ListResponse, error) {
-	summaries, err := c.listAllShipmentSummaries(ctx, params)
-	if err != nil {
-		return load.ListResponse{}, err
-	}
-
-	filtered := filterSummaries(summaries, params)
-
 	page := params.Page
 	if page < 1 {
 		page = 1
@@ -262,23 +255,13 @@ func (c *Client) ListLoads(ctx context.Context, params load.ListParams) (load.Li
 		limit = 100
 	}
 
-	total := len(filtered)
-	pages := 0
-	if total > 0 {
-		pages = (total + limit - 1) / limit
-	}
-
 	start := (page - 1) * limit
-	if start > total {
-		start = total
-	}
-	end := start + limit
-	if end > total {
-		end = total
+	response, err := c.listShipmentSummaryPage(ctx, start, limit, params)
+	if err != nil {
+		return load.ListResponse{}, err
 	}
 
-	pageSummaries := filtered[start:end]
-	details, err := c.fetchShipmentDetails(ctx, pageSummaries)
+	details, err := c.fetchShipmentDetails(ctx, response.Details.Shipments)
 	if err != nil {
 		return load.ListResponse{}, err
 	}
@@ -288,26 +271,23 @@ func (c *Client) ListLoads(ctx context.Context, params load.ListParams) (load.Li
 		loads = append(loads, mapShipmentToLoad(detail))
 	}
 
+	pagination := paginationFromSummaryPage(page, limit, start, len(response.Details.Shipments), response.Details.Pagination.MoreAvailable)
+
 	return load.ListResponse{
-		Data: loads,
-		Pagination: load.Pagination{
-			Total: total,
-			Pages: pages,
-			Page:  page,
-			Limit: limit,
-		},
+		Data:       loads,
+		Pagination: pagination,
 	}, nil
 }
 
 func (c *Client) listAllShipmentSummaries(ctx context.Context, params load.ListParams) ([]shipmentSummary, error) {
 	var (
 		all       []shipmentSummary
-		start     *int
+		start     int
 		pageCount int
 	)
 
 	for {
-		page, err := c.listShipmentSummaryPage(ctx, start, params)
+		page, err := c.listShipmentSummaryPage(ctx, start, 100, params)
 		if err != nil {
 			return nil, err
 		}
@@ -319,9 +299,10 @@ func (c *Client) listAllShipmentSummaries(ctx context.Context, params load.ListP
 			break
 		}
 
-		next := page.Details.Pagination.Start
-		start = &next
-
+		start += len(page.Details.Shipments)
+		if len(page.Details.Shipments) == 0 {
+			break
+		}
 		if pageCount > 500 {
 			return nil, fmt.Errorf("aborting pagination after %d pages", pageCount)
 		}
@@ -330,10 +311,21 @@ func (c *Client) listAllShipmentSummaries(ctx context.Context, params load.ListP
 	return all, nil
 }
 
-func (c *Client) listShipmentSummaryPage(ctx context.Context, start *int, params load.ListParams) (shipmentListResponse, error) {
+func (c *Client) listShipmentSummaryPage(ctx context.Context, start int, pageSize int, params load.ListParams) (shipmentListResponse, error) {
 	values := url.Values{}
-	if start != nil {
-		values.Set("start", strconv.Itoa(*start))
+	if start > 0 {
+		values.Set("start", strconv.Itoa(start))
+	}
+	if pageSize > 0 {
+		values.Set("pageSize", strconv.Itoa(pageSize))
+	}
+	if params.Status != "" {
+		if statusCode := turvoStatusFilterCode(params.Status); statusCode != "" {
+			values.Set("status[eq]", statusCode)
+		}
+	}
+	if strings.TrimSpace(params.CustomerID) != "" {
+		values.Set("customerId[eq]", strings.TrimSpace(params.CustomerID))
 	}
 	if params.PickupDateSearchFrom != "" {
 		values.Set("pickupDate[gte]", formatDateFilter(params.PickupDateSearchFrom, false))
@@ -355,6 +347,39 @@ func (c *Client) listShipmentSummaryPage(ctx context.Context, start *int, params
 	return response, nil
 }
 
+func paginationFromSummaryPage(page int, limit int, start int, count int, moreAvailable bool) load.Pagination {
+	total := start + count
+	if moreAvailable {
+		total++
+	}
+
+	pages := 0
+	if total > 0 {
+		pages = (total + limit - 1) / limit
+	}
+	if moreAvailable && pages < page+1 {
+		pages = page + 1
+	}
+
+	return load.Pagination{
+		Total:       total,
+		Pages:       pages,
+		Page:        page,
+		Limit:       limit,
+		Approximate: moreAvailable,
+	}
+}
+
+func turvoStatusFilterCode(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "2101", "tendered":
+		return "2101"
+	case "2102", "covered":
+		return "2102"
+	default:
+		return ""
+	}
+}
 func (c *Client) fetchShipmentDetails(ctx context.Context, summaries []shipmentSummary) ([]shipmentDetail, error) {
 	if len(summaries) == 0 {
 		return nil, nil

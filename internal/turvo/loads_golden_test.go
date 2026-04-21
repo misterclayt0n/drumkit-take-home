@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -97,6 +98,63 @@ func TestMapShipmentToLoad_Invariants(t *testing.T) {
 	}
 	if got.Operator != "Jane Operator" {
 		t.Fatalf("expected operator to come from first active contributor, got %q", got.Operator)
+	}
+}
+
+func TestListShipmentSummaryPage_UsesTurvoFiltersAndPagination(t *testing.T) {
+	t.Parallel()
+
+	var query string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		query = r.URL.RawQuery
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"Status":"OK","details":{"pagination":{"start":20,"pageSize":20,"totalRecordsInPage":1,"moreAvailable":true},"shipments":[{"id":1,"status":{"code":{"value":"Tendered"}}}]}}`)
+	}))
+	defer server.Close()
+
+	client := &Client{baseURL: server.URL, apiKey: "test", httpClient: server.Client(), accessToken: "token", expiresAt: time.Now().Add(time.Hour)}
+	_, err := client.listShipmentSummaryPage(context.Background(), 20, 20, load.ListParams{
+		Status:               "Tendered",
+		CustomerID:           "834045",
+		PickupDateSearchFrom: "2026-05-01",
+		PickupDateSearchTo:   "2026-05-02",
+	})
+	if err != nil {
+		t.Fatalf("listShipmentSummaryPage returned error: %v", err)
+	}
+
+	checks := []string{
+		"start=20",
+		"pageSize=20",
+		"status%5Beq%5D=2101",
+		"customerId%5Beq%5D=834045",
+		"pickupDate%5Bgte%5D=2026-05-01T00%3A00%3A00Z",
+		"pickupDate%5Blte%5D=2026-05-02T23%3A59%3A59Z",
+	}
+	for _, check := range checks {
+		if !strings.Contains(query, check) {
+			t.Fatalf("expected query %q to contain %q", query, check)
+		}
+	}
+}
+
+func TestPaginationFromSummaryPage_UsesLowerBoundWhenMoreAvailable(t *testing.T) {
+	t.Parallel()
+
+	got := paginationFromSummaryPage(2, 20, 20, 20, true)
+	if got.Total != 41 {
+		t.Fatalf("expected lower-bound total 41, got %d", got.Total)
+	}
+	if got.Pages != 3 {
+		t.Fatalf("expected pages 3, got %d", got.Pages)
+	}
+
+	got = paginationFromSummaryPage(3, 20, 40, 5, false)
+	if got.Total != 45 {
+		t.Fatalf("expected exact total 45 on last page, got %d", got.Total)
+	}
+	if got.Pages != 3 {
+		t.Fatalf("expected exact pages 3 on last page, got %d", got.Pages)
 	}
 }
 
