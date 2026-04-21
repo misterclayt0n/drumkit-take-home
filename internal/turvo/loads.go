@@ -2,9 +2,11 @@ package turvo
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -71,10 +73,10 @@ type shipmentContributor struct {
 }
 
 type shipmentItem struct {
-	Deleted     bool    `json:"deleted"`
-	Qty         float64 `json:"qty"`
-	Weight      float64 `json:"weight"`
-	HandlingQty int     `json:"handlingQty"`
+	Deleted     bool        `json:"deleted"`
+	Qty         float64     `json:"qty"`
+	Weight      float64     `json:"weight"`
+	HandlingQty flexibleInt `json:"handlingQty"`
 	Unit        struct {
 		Value string `json:"value"`
 	} `json:"unit"`
@@ -204,6 +206,39 @@ type shipmentDetail struct {
 type shipmentDetailResponse struct {
 	Status  string         `json:"Status"`
 	Details shipmentDetail `json:"details"`
+}
+
+type flexibleInt int
+
+func (v *flexibleInt) UnmarshalJSON(data []byte) error {
+	trimmed := strings.TrimSpace(string(data))
+	if trimmed == "" || trimmed == "null" {
+		*v = 0
+		return nil
+	}
+
+	if strings.HasPrefix(trimmed, `"`) {
+		var asString string
+		if err := json.Unmarshal(data, &asString); err != nil {
+			return err
+		}
+		trimmed = strings.TrimSpace(asString)
+		if trimmed == "" {
+			*v = 0
+			return nil
+		}
+	}
+
+	parsed, err := strconv.ParseFloat(trimmed, 64)
+	if err != nil {
+		return fmt.Errorf("parse flexibleInt %q: %w", trimmed, err)
+	}
+	if math.Mod(parsed, 1) != 0 {
+		return fmt.Errorf("parse flexibleInt %q: value must be a whole number", trimmed)
+	}
+
+	*v = flexibleInt(int(parsed))
+	return nil
 }
 
 func (c *Client) ListLoads(ctx context.Context, params load.ListParams) (load.ListResponse, error) {
@@ -690,8 +725,8 @@ func summarizeItems(items []shipmentItem) (totalWeight float64, billableWeight f
 
 		unitName := strings.ToLower(firstNonEmpty(item.HandlingUnit.Value, item.Unit.Value))
 		if strings.Contains(unitName, "pallet") {
-			inPalletCount += item.HandlingQty
-			outPalletCount += item.HandlingQty
+			inPalletCount += int(item.HandlingQty)
+			outPalletCount += int(item.HandlingQty)
 		}
 	}
 

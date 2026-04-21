@@ -2,6 +2,7 @@ package turvo
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,43 @@ import (
 
 	"drumkit-take-home/internal/load"
 )
+
+func TestFlexibleInt_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   string
+		want    flexibleInt
+		wantErr bool
+	}{
+		{name: "integer", input: `1`, want: 1},
+		{name: "float whole", input: `1.0`, want: 1},
+		{name: "string whole", input: `"2.0"`, want: 2},
+		{name: "null", input: `null`, want: 0},
+		{name: "fractional", input: `1.5`, wantErr: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var got flexibleInt
+			err := json.Unmarshal([]byte(tc.input), &got)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tc.want {
+				t.Fatalf("expected %d, got %d", tc.want, got)
+			}
+		})
+	}
+}
 
 func TestMapShipmentToLoad_Golden(t *testing.T) {
 	t.Parallel()

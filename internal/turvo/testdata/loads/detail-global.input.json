@@ -68,7 +68,7 @@
           "deleted": false,
           "qty": 1,
           "weight": 0,
-          "handlingQty": 2,
+          "handlingQty": 2.0,
           "unit": {
             "value": "Pallets"
           },

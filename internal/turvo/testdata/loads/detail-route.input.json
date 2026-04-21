@@ -44,7 +44,7 @@
           "deleted": false,
           "qty": 1,
           "weight": 0,
-          "handlingQty": 10,
+          "handlingQty": 10.0,
           "unit": {
             "value": "Cases"
           },
