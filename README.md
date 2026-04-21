@@ -22,6 +22,7 @@ Create a `.env` file in the repo root:
 ```env
 PORT=8080
 BACKEND_URL=http://localhost
+PROVIDER=turvo
 TURVO_BASE_URL=https://my-sandbox-publicapi.turvo.com/v1
 TURVO_API=...
 TURVO_CLIENT_NAME=...
@@ -34,6 +35,7 @@ LOAD_STORE_PATH=.data/drumkit-loads.json
 Notes:
 - `TURVO_BASE_URL` should stay on the `publicapi` host for API calls.
 - The Turvo web login URL can be different from the API base URL.
+- `PROVIDER` selects the TMS adapter. Right now only `turvo` is implemented.
 - `LOAD_STORE_PATH` preserves the exact Drumkit load payload for created loads so list responses can mirror the Drumkit schema even when Turvo lacks native fields.
 
 ## Run

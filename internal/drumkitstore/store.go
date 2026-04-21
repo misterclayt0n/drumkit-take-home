@@ -1,3 +1,29 @@
+// Package drumkitstore preserves the original Drumkit load payload for loads
+// created through this service.
+//
+// Why this exists:
+//   - internal/load is the canonical schema exposed by this app.
+//   - the current Turvo adapter cannot fully round-trip that schema through
+//     create -> Turvo -> list.
+//   - after create, we save the exact Drumkit payload by Turvo shipment ID; on
+//     list, we merge it back over the Turvo-derived record.
+//
+// Current Drumkit <-> Turvo gaps in this repo:
+//   - Fully unsupported on create: billTo, carrier, most of rateData, most of
+//     specifications.
+//   - Only partially supported on create: customer, pickup, consignee,
+//     externalTMSLoadID, freightLoadID, status, poNums.
+//   - Only derived on list, not truly stored by create: operator, routeMiles,
+//     pallet counts, commodity counts, total/billable weight, profit fields.
+//   - Not guaranteed to round-trip by name: externalTMSLoadID, freightLoadID,
+//     customer.refNumber, because they are pushed into generic Turvo external IDs
+//     or mapped from different Turvo fields.
+//   - Turvo spreads equivalent data across shipment, customerOrder, route,
+//     contributors, equipment, and external IDs, so mapping is inherently lossy.
+//
+// Without this store, the API would lose parts of the Drumkit payload for loads
+// created through the Turvo adapter.
+
 package drumkitstore
 
 import (

@@ -10,15 +10,20 @@ import (
 )
 
 type Config struct {
-	Port              string
-	BackendURL        string
-	TurvoBaseURL      string
-	TurvoAPIKey       string
-	TurvoClientName   string
-	TurvoClientSecret string
-	TurvoUsername     string
-	TurvoPassword     string
-	LoadStorePath     string
+	Port          string
+	BackendURL    string
+	Provider      string
+	LoadStorePath string
+	Turvo         TurvoConfig
+}
+
+type TurvoConfig struct {
+	BaseURL      string
+	APIKey       string
+	ClientName   string
+	ClientSecret string
+	Username     string
+	Password     string
 }
 
 func Load() (Config, error) {
@@ -35,15 +40,18 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
-		Port:              getenvDefault("PORT", "8080"),
-		BackendURL:        getenvDefault("BACKEND_URL", "http://localhost"),
-		TurvoBaseURL:      getenvDefault("TURVO_BASE_URL", "https://my-sandbox-publicapi.turvo.com/v1"),
-		TurvoAPIKey:       os.Getenv("TURVO_API"),
-		TurvoClientName:   os.Getenv("TURVO_CLIENT_NAME"),
-		TurvoClientSecret: os.Getenv("TURVO_CLIENT_SECRET"),
-		TurvoUsername:     os.Getenv("TURVO_USERNAME"),
-		TurvoPassword:     os.Getenv("TURVO_PASSWORD"),
-		LoadStorePath:     getenvDefault("LOAD_STORE_PATH", ".data/drumkit-loads.json"),
+		Port:          getenvDefault("PORT", "8080"),
+		BackendURL:    getenvDefault("BACKEND_URL", "http://localhost"),
+		Provider:      getenvDefault("PROVIDER", "turvo"),
+		LoadStorePath: getenvDefault("LOAD_STORE_PATH", ".data/drumkit-loads.json"),
+		Turvo: TurvoConfig{
+			BaseURL:      getenvDefault("TURVO_BASE_URL", "https://my-sandbox-publicapi.turvo.com/v1"),
+			APIKey:       os.Getenv("TURVO_API"),
+			ClientName:   os.Getenv("TURVO_CLIENT_NAME"),
+			ClientSecret: os.Getenv("TURVO_CLIENT_SECRET"),
+			Username:     os.Getenv("TURVO_USERNAME"),
+			Password:     os.Getenv("TURVO_PASSWORD"),
+		},
 	}
 
 	if err := cfg.Validate(); err != nil {
@@ -60,16 +68,21 @@ func (c Config) BackendURLWithPort() string {
 func (c Config) Validate() error {
 	var missing []string
 
-	for key, value := range map[string]string{
-		"TURVO_API":           c.TurvoAPIKey,
-		"TURVO_CLIENT_NAME":   c.TurvoClientName,
-		"TURVO_CLIENT_SECRET": c.TurvoClientSecret,
-		"TURVO_USERNAME":      c.TurvoUsername,
-		"TURVO_PASSWORD":      c.TurvoPassword,
-	} {
-		if strings.TrimSpace(value) == "" {
-			missing = append(missing, key)
+	switch strings.ToLower(strings.TrimSpace(c.Provider)) {
+	case "", "turvo":
+		for key, value := range map[string]string{
+			"TURVO_API":           c.Turvo.APIKey,
+			"TURVO_CLIENT_NAME":   c.Turvo.ClientName,
+			"TURVO_CLIENT_SECRET": c.Turvo.ClientSecret,
+			"TURVO_USERNAME":      c.Turvo.Username,
+			"TURVO_PASSWORD":      c.Turvo.Password,
+		} {
+			if strings.TrimSpace(value) == "" {
+				missing = append(missing, key)
+			}
 		}
+	default:
+		return fmt.Errorf("unsupported provider: %s", c.Provider)
 	}
 
 	if len(missing) > 0 {

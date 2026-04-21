@@ -76,18 +76,18 @@ func (e *apiStatusError) Error() string {
 	return fmt.Sprintf("turvo %s %s failed with status %d: %s", e.Method, e.Path, e.Status, e.Body)
 }
 
-func NewClient(cfg config.Config) *Client {
+func NewClient(cfg config.TurvoConfig) *Client {
 	return &Client{
 		// Normalize the base URL so path concatenation doesn't produce `//...`
 		// when TURVO_BASE_URL is configured with a trailing slash.
 		//
 		// Again, just a reasonable default.
-		baseURL:      strings.TrimRight(cfg.TurvoBaseURL, "/"),
-		apiKey:       cfg.TurvoAPIKey,
-		clientName:   cfg.TurvoClientName,
-		clientSecret: cfg.TurvoClientSecret,
-		username:     cfg.TurvoUsername,
-		password:     cfg.TurvoPassword,
+		baseURL:      strings.TrimRight(cfg.BaseURL, "/"),
+		apiKey:       cfg.APIKey,
+		clientName:   cfg.ClientName,
+		clientSecret: cfg.ClientSecret,
+		username:     cfg.Username,
+		password:     cfg.Password,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second, // Reasonable default.
 		},

@@ -13,17 +13,17 @@ import (
 	"time"
 
 	"drumkit-take-home/internal/drumkitstore"
+	"drumkit-take-home/internal/integration"
 	"drumkit-take-home/internal/load"
-	"drumkit-take-home/internal/turvo"
 )
 
 type Server struct {
-	turvoClient *turvo.Client
-	loadStore   *drumkitstore.Store
+	provider  integration.Provider
+	loadStore *drumkitstore.Store
 }
 
-func NewServer(turvoClient *turvo.Client, loadStore *drumkitstore.Store) *Server {
-	return &Server{turvoClient: turvoClient, loadStore: loadStore}
+func NewServer(provider integration.Provider, loadStore *drumkitstore.Store) *Server {
+	return &Server{provider: provider, loadStore: loadStore}
 }
 
 func (s *Server) Routes() http.Handler {
@@ -70,7 +70,7 @@ func (s *Server) handleListLoads(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
 	defer cancel()
 
-	result, err := s.turvoClient.ListLoads(ctx, params)
+	result, err := s.provider.ListLoads(ctx, params)
 	if err != nil {
 		log.Printf("list loads failed: %v", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]any{
@@ -114,7 +114,7 @@ func (s *Server) handleCreateLoad(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
 	defer cancel()
 
-	result, err := s.turvoClient.CreateLoad(ctx, input)
+	result, err := s.provider.CreateLoad(ctx, input)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if isCreateLoadValidationError(err) {
