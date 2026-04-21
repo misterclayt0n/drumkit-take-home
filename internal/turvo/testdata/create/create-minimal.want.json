@@ -1,0 +1,119 @@
+{
+  "ltlShipment": false,
+  "startDate": {
+    "date": "2026-05-01T14:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "endDate": {
+    "date": "2026-05-02T18:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "status": {
+    "code": {
+      "key": "2101",
+      "value": "Tendered"
+    }
+  },
+  "lane": {
+    "start": "ROCKINGHAM, NC, US",
+    "end": "JAMAICA, NY, US"
+  },
+  "globalRoute": [
+    {
+      "name": "Pickup Warehouse",
+      "stopType": {
+        "key": "1500",
+        "value": "Pickup"
+      },
+      "timezone": "America/New_York",
+      "location": {
+        "id": 525513
+      },
+      "segmentSequence": 0,
+      "sequence": 0,
+      "state": "OPEN",
+      "appointment": {
+        "date": "2026-05-01T14:00:00Z",
+        "timezone": "America/New_York",
+        "flex": 0,
+        "hasTime": true
+      },
+      "poNumbers": ["PO-1"],
+      "notes": "Pickup note"
+    },
+    {
+      "name": "Delivery Warehouse",
+      "stopType": {
+        "key": "1501",
+        "value": "Delivery"
+      },
+      "timezone": "America/New_York",
+      "location": {
+        "id": 525541
+      },
+      "segmentSequence": 0,
+      "sequence": 1,
+      "state": "OPEN",
+      "appointment": {
+        "date": "2026-05-02T18:00:00Z",
+        "timezone": "America/New_York",
+        "flex": 0,
+        "hasTime": true
+      },
+      "poNumbers": ["PO-1"],
+      "notes": "Delivery note"
+    }
+  ],
+  "transportation": {
+    "mode": {
+      "key": "24105",
+      "value": "TL"
+    },
+    "serviceType": {
+      "key": "24304",
+      "value": "Any"
+    }
+  },
+  "customerOrder": [
+    {
+      "customer": {
+        "id": 834045,
+        "name": "37th St Bakery"
+      },
+      "externalIds": [
+        {
+          "type": {
+            "key": "1400",
+            "value": "Purchase order #"
+          },
+          "value": "PO-1",
+          "copyToCarrierOrder": false
+        },
+        {
+          "type": {
+            "key": "1401",
+            "value": "Reference Number"
+          },
+          "value": "REF-1",
+          "copyToCarrierOrder": false
+        },
+        {
+          "type": {
+            "key": "1401",
+            "value": "Reference Number"
+          },
+          "value": "dk-load-1",
+          "copyToCarrierOrder": false
+        },
+        {
+          "type": {
+            "key": "1401",
+            "value": "Reference Number"
+          },
+          "value": "freight-1",
+          "copyToCarrierOrder": false
+        }
+      ]
+    }
+  ]
+}

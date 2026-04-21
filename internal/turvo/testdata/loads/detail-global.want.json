@@ -1,0 +1,56 @@
+{
+  "externalTMSLoadID": "2002",
+  "freightLoadID": "FRT-2002",
+  "status": "Covered",
+  "customer": {
+    "externalTMSId": "998877",
+    "name": "Global Foods",
+    "refNumber": "REF-A"
+  },
+  "pickup": {
+    "externalTMSId": "7001",
+    "name": "Global Pickup",
+    "addressLine1": "77 Global Rd",
+    "city": "Chicago",
+    "state": "IL",
+    "country": "US",
+    "refNumber": "REF-A",
+    "readyTime": "2026-06-01T15:00:00Z",
+    "apptTime": "2026-06-01T15:00:00Z",
+    "apptNote": "Use dock 3",
+    "timezone": "America/Chicago",
+    "warehouseId": "7001"
+  },
+  "consignee": {
+    "externalTMSId": "7002",
+    "name": "Global Delivery",
+    "addressLine1": "88 Market St",
+    "city": "St Louis",
+    "state": "MO",
+    "country": "US",
+    "refNumber": "REF-A",
+    "mustDeliver": "2026-06-02T20:30:00Z",
+    "apptTime": "2026-06-02T20:30:00Z",
+    "apptNote": "Call ahead",
+    "timezone": "America/Chicago",
+    "warehouseId": "7002"
+  },
+  "rateData": {
+    "customerLhRateUsd": 900,
+    "carrierLhRateUsd": 810,
+    "netProfitUsd": 90,
+    "profitPercent": 10
+  },
+  "specifications": {
+    "minTempFahrenheit": 41,
+    "maxTempFahrenheit": 41
+  },
+  "inPalletCount": 2,
+  "outPalletCount": 2,
+  "numCommodities": 1,
+  "totalWeight": 600,
+  "billableWeight": 600,
+  "poNums": "PO-1",
+  "operator": "Night Operator",
+  "routeMiles": 88
+}

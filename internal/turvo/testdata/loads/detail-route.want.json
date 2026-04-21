@@ -1,0 +1,70 @@
+{
+  "externalTMSLoadID": "1001",
+  "freightLoadID": "FRT-1001",
+  "status": "Tendered",
+  "customer": {
+    "externalTMSId": "834045",
+    "name": "37th St Bakery",
+    "refNumber": "REF-9"
+  },
+  "billTo": {
+    "externalTMSId": "BT-1",
+    "name": "Acme Billing",
+    "addressLine1": "1 Billing Way",
+    "city": "Nashville",
+    "state": "TN",
+    "zipcode": "37011",
+    "country": "US",
+    "email": "billing@example.com"
+  },
+  "pickup": {
+    "externalTMSId": "525513",
+    "name": "Rockingham Warehouse",
+    "addressLine1": "123 Pickup St",
+    "city": "ROCKINGHAM",
+    "state": "NC",
+    "zipcode": "28379",
+    "country": "US",
+    "phone": "555-0100",
+    "refNumber": "REF-9",
+    "readyTime": "2026-05-01T14:00:00Z",
+    "apptTime": "2026-05-01T14:00:00Z",
+    "apptNote": "Pickup note",
+    "timezone": "America/New_York",
+    "warehouseId": "525513"
+  },
+  "consignee": {
+    "externalTMSId": "525541",
+    "name": "Queens Delivery",
+    "addressLine1": "456 Delivery Ave",
+    "city": "JAMAICA",
+    "state": "NY",
+    "zipcode": "11434",
+    "country": "US",
+    "phone": "555-0200",
+    "refNumber": "REF-9",
+    "mustDeliver": "2026-05-02T18:00:00Z",
+    "apptTime": "2026-05-02T18:00:00Z",
+    "apptNote": "Delivery note",
+    "timezone": "America/New_York",
+    "warehouseId": "525541"
+  },
+  "rateData": {
+    "customerLhRateUsd": 2000,
+    "carrierLhRateUsd": 1500,
+    "netProfitUsd": 500,
+    "profitPercent": 25
+  },
+  "specifications": {
+    "minTempFahrenheit": 39.2,
+    "maxTempFahrenheit": 39.2
+  },
+  "inPalletCount": 10,
+  "outPalletCount": 10,
+  "numCommodities": 2,
+  "totalWeight": 1200,
+  "billableWeight": 1200,
+  "poNums": "PO-123",
+  "operator": "Jane Operator",
+  "routeMiles": 725.5
+}

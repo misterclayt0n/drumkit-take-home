@@ -1,0 +1,127 @@
+{
+  "ltlShipment": false,
+  "startDate": {
+    "date": "2026-06-01T15:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "endDate": {
+    "date": "2026-06-02T20:30:00Z",
+    "timeZone": "America/New_York"
+  },
+  "status": {
+    "code": {
+      "key": "2102",
+      "value": "Covered"
+    }
+  },
+  "lane": {
+    "start": "Chicago, IL, US",
+    "end": "St Louis, MO, US"
+  },
+  "globalRoute": [
+    {
+      "name": "Warehouse Pickup",
+      "stopType": {
+        "key": "1500",
+        "value": "Pickup"
+      },
+      "timezone": "America/New_York",
+      "location": {
+        "id": 777001
+      },
+      "segmentSequence": 0,
+      "sequence": 0,
+      "state": "OPEN",
+      "appointment": {
+        "date": "2026-06-01T15:00:00Z",
+        "timezone": "America/New_York",
+        "flex": 0,
+        "hasTime": true
+      },
+      "poNumbers": ["PO-7", "PO-8"],
+      "notes": "Pickup ASAP"
+    },
+    {
+      "name": "Warehouse Delivery",
+      "stopType": {
+        "key": "1501",
+        "value": "Delivery"
+      },
+      "timezone": "America/New_York",
+      "location": {
+        "id": 888002
+      },
+      "segmentSequence": 0,
+      "sequence": 1,
+      "state": "OPEN",
+      "appointment": {
+        "date": "2026-06-02T20:30:00Z",
+        "timezone": "America/New_York",
+        "flex": 0,
+        "hasTime": true
+      },
+      "poNumbers": ["PO-7", "PO-8"],
+      "notes": "Call ahead"
+    }
+  ],
+  "transportation": {
+    "mode": {
+      "key": "24105",
+      "value": "TL"
+    },
+    "serviceType": {
+      "key": "24304",
+      "value": "Any"
+    }
+  },
+  "customerOrder": [
+    {
+      "customer": {
+        "id": 900001,
+        "name": "Global Foods"
+      },
+      "externalIds": [
+        {
+          "type": {
+            "key": "1400",
+            "value": "Purchase order #"
+          },
+          "value": "PO-7",
+          "copyToCarrierOrder": false
+        },
+        {
+          "type": {
+            "key": "1400",
+            "value": "Purchase order #"
+          },
+          "value": "PO-8",
+          "copyToCarrierOrder": false
+        },
+        {
+          "type": {
+            "key": "1401",
+            "value": "Reference Number"
+          },
+          "value": "REF-99",
+          "copyToCarrierOrder": false
+        },
+        {
+          "type": {
+            "key": "1401",
+            "value": "Reference Number"
+          },
+          "value": "dk-load-99",
+          "copyToCarrierOrder": false
+        },
+        {
+          "type": {
+            "key": "1401",
+            "value": "Reference Number"
+          },
+          "value": "freight-99",
+          "copyToCarrierOrder": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "id": 1001,
+  "customId": "FRT-1001",
+  "netCustomerCosts": 2000,
+  "netCarrierCosts": 1500,
+  "netRevenue": 500,
+  "status": {
+    "code": {
+      "key": "2101",
+      "value": "Tendered"
+    }
+  },
+  "equipment": [
+    {
+      "deleted": false,
+      "temp": 4,
+      "tempUnits": {
+        "value": "C"
+      }
+    }
+  ],
+  "contributors": [
+    {
+      "deleted": false,
+      "contributorUser": {
+        "name": "Jane Operator"
+      },
+      "title": {
+        "value": "Operator"
+      }
+    }
+  ],
+  "customerOrder": [
+    {
+      "id": 501,
+      "deleted": false,
+      "totalMiles": 725.5,
+      "customer": {
+        "id": 834045,
+        "name": "37th St Bakery"
+      },
+      "items": [
+        {
+          "deleted": false,
+          "qty": 1,
+          "weight": 0,
+          "handlingQty": 10,
+          "unit": {
+            "value": "Cases"
+          },
+          "handlingUnit": {
+            "value": "Pallets"
+          },
+          "grossWeight": {
+            "weight": 1000
+          },
+          "netWeight": {
+            "weight": 900
+          }
+        },
+        {
+          "deleted": false,
+          "qty": 1,
+          "weight": 200,
+          "handlingQty": 0,
+          "unit": {
+            "value": "Cases"
+          },
+          "handlingUnit": {
+            "value": ""
+          },
+          "grossWeight": {
+            "weight": 0
+          },
+          "netWeight": {
+            "weight": 0
+          }
+        }
+      ],
+      "route": [
+        {
+          "id": 1,
+          "deleted": false,
+          "phone": "555-0100",
+          "sequence": 0,
+          "appointmentNo": "PU-1",
+          "notes": "Pickup note",
+          "stopType": {
+            "value": "Pickup"
+          },
+          "location": {
+            "id": 525513,
+            "name": "Rockingham Warehouse"
+          },
+          "address": {
+            "line1": "123 Pickup St",
+            "city": "ROCKINGHAM",
+            "state": "NC",
+            "zip": "28379",
+            "country": "US"
+          },
+          "appointment": {
+            "start": "2026-05-01T14:00:00Z",
+            "timeZone": "America/New_York"
+          }
+        },
+        {
+          "id": 2,
+          "deleted": false,
+          "phone": "555-0200",
+          "sequence": 1,
+          "appointmentNo": "DL-1",
+          "notes": "Delivery note",
+          "stopType": {
+            "value": "Delivery"
+          },
+          "location": {
+            "id": 525541,
+            "name": "Queens Delivery"
+          },
+          "address": {
+            "line1": "456 Delivery Ave",
+            "city": "JAMAICA",
+            "state": "NY",
+            "zip": "11434",
+            "country": "US"
+          },
+          "appointment": {
+            "start": "2026-05-02T18:00:00Z",
+            "timeZone": "America/New_York"
+          }
+        }
+      ],
+      "externalIds": [
+        {
+          "deleted": false,
+          "type": {
+            "key": "1400",
+            "value": "Purchase order #"
+          },
+          "value": "PO-123"
+        },
+        {
+          "deleted": false,
+          "type": {
+            "key": "1401",
+            "value": "Reference #"
+          },
+          "value": "REF-9"
+        }
+      ],
+      "freightTerms": {
+        "billTo": {
+          "id": "BT-1",
+          "billTo": "Acme Billing",
+          "address": {
+            "line1": "1 Billing Way",
+            "state": {
+              "name": "TN"
+            },
+            "zip": "37011",
+            "country": {
+              "name": "US"
+            },
+            "city": {
+              "name": "Nashville"
+            }
+          },
+          "emails": [
+            {
+              "email": "billing@example.com"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "globalRoute": []
+}

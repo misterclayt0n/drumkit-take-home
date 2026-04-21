@@ -94,29 +94,46 @@ type shipmentCreateExternalID struct {
 }
 
 func (c *Client) CreateLoad(ctx context.Context, input load.Load) (load.CreateResponse, error) {
-	customerID, err := parseRequiredInt(input.Customer.ExternalTMSID, "customer.externalTMSId")
+	requestBody, err := buildCreateShipmentRequest(input)
 	if err != nil {
 		return load.CreateResponse{}, err
+	}
+
+	var response createShipmentResponse
+	if err := c.postJSON(ctx, "/shipments?fullResponse=true", requestBody, &response); err != nil {
+		return load.CreateResponse{}, err
+	}
+
+	return load.CreateResponse{
+		ID:        response.Details.ID,
+		CreatedAt: firstNonEmpty(response.Details.Created, response.Details.CreatedDate, firstStatusHistoryTimestamp(response.Details.StatusHistory), time.Now().UTC().Format(time.RFC3339Nano)),
+	}, nil
+}
+
+func buildCreateShipmentRequest(input load.Load) (createShipmentRequest, error) {
+	customerID, err := parseRequiredInt(input.Customer.ExternalTMSID, "customer.externalTMSId")
+	if err != nil {
+		return createShipmentRequest{}, err
 	}
 
 	pickupLocationID, err := parseRequiredInt(firstNonEmpty(input.Pickup.ExternalTMSID, input.Pickup.WarehouseID), "pickup.externalTMSId")
 	if err != nil {
-		return load.CreateResponse{}, err
+		return createShipmentRequest{}, err
 	}
 
 	deliveryLocationID, err := parseRequiredInt(firstNonEmpty(input.Consignee.ExternalTMSID, input.Consignee.WarehouseID), "consignee.externalTMSId")
 	if err != nil {
-		return load.CreateResponse{}, err
+		return createShipmentRequest{}, err
 	}
 
 	pickupTime, err := requireTimestamp(firstNonEmpty(input.Pickup.ApptTime, input.Pickup.ReadyTime), "pickup.apptTime")
 	if err != nil {
-		return load.CreateResponse{}, err
+		return createShipmentRequest{}, err
 	}
 
 	deliveryTime, err := requireTimestamp(firstNonEmpty(input.Consignee.ApptTime, input.Consignee.MustDeliver), "consignee.apptTime")
 	if err != nil {
-		return load.CreateResponse{}, err
+		return createShipmentRequest{}, err
 	}
 
 	pickupTimezone := firstNonEmpty(input.Pickup.Timezone, "America/New_York")
@@ -125,7 +142,7 @@ func (c *Client) CreateLoad(ctx context.Context, input load.Load) (load.CreateRe
 	externalIDs := buildExternalIDs(input)
 	status := buildShipmentStatus(input.Status)
 
-	requestBody := createShipmentRequest{
+	return createShipmentRequest{
 		LTLShipment: false,
 		StartDate: shipmentDateTime{
 			Date:     pickupTime,
@@ -189,16 +206,6 @@ func (c *Client) CreateLoad(ctx context.Context, input load.Load) (load.CreateRe
 				ExternalIDs: externalIDs,
 			},
 		},
-	}
-
-	var response createShipmentResponse
-	if err := c.postJSON(ctx, "/shipments?fullResponse=true", requestBody, &response); err != nil {
-		return load.CreateResponse{}, err
-	}
-
-	return load.CreateResponse{
-		ID:        response.Details.ID,
-		CreatedAt: firstNonEmpty(response.Details.Created, response.Details.CreatedDate, firstStatusHistoryTimestamp(response.Details.StatusHistory), time.Now().UTC().Format(time.RFC3339Nano)),
 	}, nil
 }
 

@@ -1,0 +1,168 @@
+{
+  "id": 2002,
+  "customId": "FRT-2002",
+  "netCustomerCosts": 900,
+  "netCarrierCosts": 810,
+  "netRevenue": 90,
+  "status": {
+    "code": {
+      "key": "2102",
+      "value": "Covered"
+    }
+  },
+  "equipment": [
+    {
+      "deleted": false,
+      "temp": 41,
+      "tempUnits": {
+        "value": "F"
+      }
+    }
+  ],
+  "contributors": [
+    {
+      "deleted": true,
+      "contributorUser": {
+        "name": "Deleted User"
+      },
+      "title": {
+        "value": "Operator"
+      }
+    },
+    {
+      "deleted": false,
+      "contributorUser": {
+        "name": "Night Operator"
+      },
+      "title": {
+        "value": "Operator"
+      }
+    }
+  ],
+  "customerOrder": [
+    {
+      "id": 601,
+      "deleted": true,
+      "totalMiles": 0,
+      "customer": {
+        "id": 1,
+        "name": "Deleted Customer"
+      },
+      "items": [],
+      "route": [],
+      "externalIds": [],
+      "freightTerms": {
+        "billTo": {}
+      }
+    },
+    {
+      "id": 602,
+      "deleted": false,
+      "totalMiles": 88,
+      "customer": {
+        "id": 998877,
+        "name": "Global Foods"
+      },
+      "items": [
+        {
+          "deleted": false,
+          "qty": 1,
+          "weight": 0,
+          "handlingQty": 2,
+          "unit": {
+            "value": "Pallets"
+          },
+          "handlingUnit": {
+            "value": "Pallets"
+          },
+          "grossWeight": {
+            "weight": 0
+          },
+          "netWeight": {
+            "weight": 600
+          }
+        }
+      ],
+      "route": [],
+      "externalIds": [
+        {
+          "deleted": false,
+          "type": {
+            "key": "1400",
+            "value": "Purchase order #"
+          },
+          "value": "PO-1"
+        },
+        {
+          "deleted": false,
+          "type": {
+            "key": "1400",
+            "value": "Purchase order #"
+          },
+          "value": "PO-1"
+        },
+        {
+          "deleted": false,
+          "type": {
+            "key": "1401",
+            "value": "Reference #"
+          },
+          "value": "REF-A"
+        }
+      ],
+      "freightTerms": {
+        "billTo": {}
+      }
+    }
+  ],
+  "globalRoute": [
+    {
+      "id": 11,
+      "deleted": false,
+      "stopType": {
+        "value": "Pickup"
+      },
+      "location": {
+        "id": 7001,
+        "name": "Global Pickup"
+      },
+      "address": {
+        "line1": "77 Global Rd",
+        "city": "Chicago",
+        "state": "IL",
+        "countryCode": "US"
+      },
+      "timezone": "America/Chicago",
+      "appointment": {
+        "date": "2026-06-01T15:00:00Z",
+        "timeZone": ""
+      },
+      "appointmentNo": "PU-G",
+      "notes": "Use dock 3"
+    },
+    {
+      "id": 12,
+      "deleted": false,
+      "stopType": {
+        "value": "Delivery"
+      },
+      "location": {
+        "id": 7002,
+        "name": "Global Delivery"
+      },
+      "address": {
+        "line1": "88 Market St",
+        "city": "St Louis",
+        "state": "MO",
+        "countryCode": "US"
+      },
+      "timezone": "America/Chicago",
+      "appointment": {
+        "date": "2026-06-02T20:30:00Z",
+        "timeZone": "America/Chicago"
+      },
+      "appointmentNo": "DL-G",
+      "notes": "Call ahead"
+    }
+  ]
+}

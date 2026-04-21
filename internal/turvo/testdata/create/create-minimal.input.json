@@ -1,0 +1,31 @@
+{
+  "externalTMSLoadID": "dk-load-1",
+  "freightLoadID": "freight-1",
+  "status": "Tendered",
+  "customer": {
+    "externalTMSId": "834045",
+    "name": "37th St Bakery",
+    "refNumber": "REF-1"
+  },
+  "pickup": {
+    "externalTMSId": "525513",
+    "name": "Pickup Warehouse",
+    "city": "ROCKINGHAM",
+    "state": "NC",
+    "country": "US",
+    "apptTime": "2026-05-01T14:00:00Z",
+    "apptNote": "Pickup note",
+    "timezone": "America/New_York"
+  },
+  "consignee": {
+    "externalTMSId": "525541",
+    "name": "Delivery Warehouse",
+    "city": "JAMAICA",
+    "state": "NY",
+    "country": "US",
+    "apptTime": "2026-05-02T18:00:00Z",
+    "apptNote": "Delivery note",
+    "timezone": "America/New_York"
+  },
+  "poNums": "PO-1"
+}

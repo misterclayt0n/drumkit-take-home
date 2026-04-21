@@ -1,0 +1,47 @@
+{
+  "externalTMSLoadID": "dk-load-99",
+  "freightLoadID": "freight-99",
+  "status": "Covered",
+  "customer": {
+    "externalTMSId": "900001",
+    "name": "Global Foods",
+    "addressLine1": "Ignored customer addr",
+    "refNumber": "REF-99"
+  },
+  "billTo": {
+    "externalTMSId": "BT-99",
+    "name": "Ignored Bill To",
+    "email": "billing@example.com"
+  },
+  "pickup": {
+    "warehouseId": "777001",
+    "name": "Warehouse Pickup",
+    "city": "Chicago",
+    "state": "IL",
+    "country": "US",
+    "readyTime": "2026-06-01T15:00:00Z",
+    "apptNote": "Pickup ASAP"
+  },
+  "consignee": {
+    "warehouseId": "888002",
+    "name": "Warehouse Delivery",
+    "city": "St Louis",
+    "state": "MO",
+    "country": "US",
+    "mustDeliver": "2026-06-02T20:30:00Z",
+    "apptNote": "Call ahead"
+  },
+  "carrier": {
+    "name": "Ignored Carrier",
+    "mcNumber": "MC-123"
+  },
+  "rateData": {
+    "customerRateType": "Flat",
+    "customerLhRateUsd": 1000
+  },
+  "specifications": {
+    "hazmat": true,
+    "minTempFahrenheit": 34
+  },
+  "poNums": "PO-7, PO-8, PO-7"
+}
