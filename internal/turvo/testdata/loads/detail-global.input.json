@@ -79,7 +79,7 @@
             "weight": 0
           },
           "netWeight": {
-            "weight": 600
+            "weight": [600]
           }
         }
       ],

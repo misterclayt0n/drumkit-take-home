@@ -55,8 +55,8 @@ type shipmentListResponse struct {
 }
 
 type shipmentEquipment struct {
-	Deleted   bool    `json:"deleted"`
-	Temp      float64 `json:"temp"`
+	Deleted   bool          `json:"deleted"`
+	Temp      flexibleFloat `json:"temp"`
 	TempUnits struct {
 		Value string `json:"value"`
 	} `json:"tempUnits"`
@@ -73,22 +73,18 @@ type shipmentContributor struct {
 }
 
 type shipmentItem struct {
-	Deleted     bool        `json:"deleted"`
-	Qty         float64     `json:"qty"`
-	Weight      float64     `json:"weight"`
-	HandlingQty flexibleInt `json:"handlingQty"`
+	Deleted     bool          `json:"deleted"`
+	Qty         flexibleFloat `json:"qty"`
+	Weight      flexibleFloat `json:"weight"`
+	HandlingQty flexibleInt   `json:"handlingQty"`
 	Unit        struct {
 		Value string `json:"value"`
 	} `json:"unit"`
 	HandlingUnit struct {
 		Value string `json:"value"`
 	} `json:"handlingUnit"`
-	GrossWeight struct {
-		Weight float64 `json:"weight"`
-	} `json:"grossWeight"`
-	NetWeight struct {
-		Weight float64 `json:"weight"`
-	} `json:"netWeight"`
+	GrossWeight shipmentWeight `json:"grossWeight"`
+	NetWeight   shipmentWeight `json:"netWeight"`
 }
 
 type shipmentExternalID struct {
@@ -208,7 +204,22 @@ type shipmentDetailResponse struct {
 	Details shipmentDetail `json:"details"`
 }
 
+type shipmentWeight struct {
+	Weight flexibleFloat `json:"weight"`
+}
+
+type flexibleFloat float64
+
 type flexibleInt int
+
+func (v *flexibleFloat) UnmarshalJSON(data []byte) error {
+	parsed, err := parseFlexibleNumber(data)
+	if err != nil {
+		return fmt.Errorf("parse flexibleFloat %q: %w", strings.TrimSpace(string(data)), err)
+	}
+	*v = flexibleFloat(parsed)
+	return nil
+}
 
 func (v *flexibleInt) UnmarshalJSON(data []byte) error {
 	trimmed := strings.TrimSpace(string(data))
@@ -229,7 +240,7 @@ func (v *flexibleInt) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-	parsed, err := strconv.ParseFloat(trimmed, 64)
+	parsed, err := parseFlexibleNumber(data)
 	if err != nil {
 		return fmt.Errorf("parse flexibleInt %q: %w", trimmed, err)
 	}
@@ -239,6 +250,40 @@ func (v *flexibleInt) UnmarshalJSON(data []byte) error {
 
 	*v = flexibleInt(int(parsed))
 	return nil
+}
+
+func parseFlexibleNumber(data []byte) (float64, error) {
+	trimmed := strings.TrimSpace(string(data))
+	if trimmed == "" || trimmed == "null" {
+		return 0, nil
+	}
+
+	if strings.HasPrefix(trimmed, `[`) {
+		var values []json.RawMessage
+		if err := json.Unmarshal(data, &values); err != nil {
+			return 0, err
+		}
+		for _, value := range values {
+			parsed, err := parseFlexibleNumber(value)
+			if err == nil {
+				return parsed, nil
+			}
+		}
+		return 0, nil
+	}
+
+	if strings.HasPrefix(trimmed, `"`) {
+		var asString string
+		if err := json.Unmarshal(data, &asString); err != nil {
+			return 0, err
+		}
+		trimmed = strings.TrimSpace(asString)
+		if trimmed == "" {
+			return 0, nil
+		}
+	}
+
+	return strconv.ParseFloat(trimmed, 64)
 }
 
 func (c *Client) ListLoads(ctx context.Context, params load.ListParams) (load.ListResponse, error) {
@@ -744,7 +789,7 @@ func summarizeItems(items []shipmentItem) (totalWeight float64, billableWeight f
 			continue
 		}
 		numCommodities++
-		weight := firstPositive(item.GrossWeight.Weight, item.NetWeight.Weight, item.Weight)
+		weight := firstPositive(float64(item.GrossWeight.Weight), float64(item.NetWeight.Weight), float64(item.Weight))
 		totalWeight += weight
 		billableWeight += weight
 
@@ -763,7 +808,7 @@ func mapSpecifications(equipment []shipmentEquipment) load.Specifications {
 		if item.Deleted {
 			continue
 		}
-		temp := item.Temp
+		temp := float64(item.Temp)
 		if strings.Contains(strings.ToUpper(item.TempUnits.Value), "C") {
 			temp = (temp * 9 / 5) + 32
 		}

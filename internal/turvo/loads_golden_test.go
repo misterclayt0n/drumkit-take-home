@@ -13,6 +13,44 @@ import (
 	"drumkit-take-home/internal/load"
 )
 
+func TestFlexibleFloat_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   string
+		want    flexibleFloat
+		wantErr bool
+	}{
+		{name: "number", input: `1.25`, want: 1.25},
+		{name: "string", input: `"2.5"`, want: 2.5},
+		{name: "array first number", input: `[3.5, 4]`, want: 3.5},
+		{name: "empty array", input: `[]`, want: 0},
+		{name: "null", input: `null`, want: 0},
+		{name: "invalid", input: `{}`, wantErr: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var got flexibleFloat
+			err := json.Unmarshal([]byte(tc.input), &got)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tc.want {
+				t.Fatalf("expected %v, got %v", tc.want, got)
+			}
+		})
+	}
+}
+
 func TestFlexibleInt_UnmarshalJSON(t *testing.T) {
 	t.Parallel()
 
