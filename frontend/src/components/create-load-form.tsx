@@ -17,12 +17,13 @@ type FieldConfig<T> = {
   placeholder?: string
   step?: string
   mono?: boolean
+  required?: boolean
 }
 
 // ---------- field configs (unchanged) ----------
 
 const customerFields: FieldConfig<Load['customer']>[] = [
-  { key: 'externalTMSId', label: 'External TMS ID' },
+  { key: 'externalTMSId', label: 'External TMS ID', required: true },
   { key: 'name', label: 'Name' },
   { key: 'addressLine1', label: 'Address line 1' },
   { key: 'addressLine2', label: 'Address line 2' },
@@ -51,8 +52,8 @@ const billToFields: FieldConfig<Load['billTo']>[] = [
 ]
 
 const pickupFields: FieldConfig<Load['pickup']>[] = [
-  { key: 'externalTMSId', label: 'External TMS ID' },
-  { key: 'warehouseId', label: 'Warehouse ID' },
+  { key: 'externalTMSId', label: 'External TMS ID', required: true },
+  { key: 'warehouseId', label: 'Warehouse ID', required: true },
   { key: 'name', label: 'Name' },
   { key: 'contact', label: 'Contact' },
   { key: 'addressLine1', label: 'Address line 1' },
@@ -65,15 +66,15 @@ const pickupFields: FieldConfig<Load['pickup']>[] = [
   { key: 'email', label: 'Email' },
   { key: 'businessHours', label: 'Business hours' },
   { key: 'refNumber', label: 'Reference number' },
-  { key: 'readyTime', label: 'Ready time', placeholder: 'RFC3339 timestamp', mono: true },
-  { key: 'apptTime', label: 'Appointment time', placeholder: 'RFC3339 timestamp', mono: true },
+  { key: 'readyTime', label: 'Ready time', placeholder: 'RFC3339 timestamp', mono: true, required: true },
+  { key: 'apptTime', label: 'Appointment time', placeholder: 'RFC3339 timestamp', mono: true, required: true },
   { key: 'apptNote', label: 'Appointment note', type: 'textarea' },
   { key: 'timezone', label: 'Timezone' },
 ]
 
 const consigneeFields: FieldConfig<Load['consignee']>[] = [
-  { key: 'externalTMSId', label: 'External TMS ID' },
-  { key: 'warehouseId', label: 'Warehouse ID' },
+  { key: 'externalTMSId', label: 'External TMS ID', required: true },
+  { key: 'warehouseId', label: 'Warehouse ID', required: true },
   { key: 'name', label: 'Name' },
   { key: 'contact', label: 'Contact' },
   { key: 'addressLine1', label: 'Address line 1' },
@@ -86,8 +87,8 @@ const consigneeFields: FieldConfig<Load['consignee']>[] = [
   { key: 'email', label: 'Email' },
   { key: 'businessHours', label: 'Business hours' },
   { key: 'refNumber', label: 'Reference number' },
-  { key: 'mustDeliver', label: 'Must deliver' },
-  { key: 'apptTime', label: 'Appointment time', placeholder: 'RFC3339 timestamp', mono: true },
+  { key: 'mustDeliver', label: 'Must deliver', required: true },
+  { key: 'apptTime', label: 'Appointment time', placeholder: 'RFC3339 timestamp', mono: true, required: true },
   { key: 'apptNote', label: 'Appointment note', type: 'textarea' },
   { key: 'timezone', label: 'Timezone' },
 ]
@@ -211,6 +212,9 @@ export function CreateLoadForm({
             <p className="mt-0.5 text-sm text-[var(--dk-ink-soft)]">
               Full Drumkit load schema. Expand sections as needed.
             </p>
+            <p className="mt-1 text-xs text-[var(--dk-ink-soft)]">
+              <span className="font-semibold text-[var(--dk-red)]">*</span> required for the current Turvo adapter. For pickup and consignee, provide one of External TMS ID or Warehouse ID, and one of the marked time fields in each section.
+            </p>
           </div>
           <button
             type="button"
@@ -269,8 +273,8 @@ export function CreateLoadForm({
             </AccordionSection>
 
             <ObjectAccordion title="Customer" defaultOpen count={customerFields.length} value={draft.customer} fields={customerFields} onChange={(f, v) => updateSection('customer', f, v)} />
-            <ObjectAccordion title="Pickup" defaultOpen count={pickupFields.length} value={draft.pickup} fields={pickupFields} onChange={(f, v) => updateSection('pickup', f, v)} />
-            <ObjectAccordion title="Consignee (delivery)" defaultOpen count={consigneeFields.length} value={draft.consignee} fields={consigneeFields} onChange={(f, v) => updateSection('consignee', f, v)} />
+            <ObjectAccordion title="Pickup" defaultOpen count={pickupFields.length} helperText="One of External TMS ID or Warehouse ID is required. One of Ready time or Appointment time is required." value={draft.pickup} fields={pickupFields} onChange={(f, v) => updateSection('pickup', f, v)} />
+            <ObjectAccordion title="Consignee (delivery)" defaultOpen count={consigneeFields.length} helperText="One of External TMS ID or Warehouse ID is required. One of Must deliver or Appointment time is required." value={draft.consignee} fields={consigneeFields} onChange={(f, v) => updateSection('consignee', f, v)} />
             <ObjectAccordion title="Bill to" count={billToFields.length} value={draft.billTo} fields={billToFields} onChange={(f, v) => updateSection('billTo', f, v)} />
             <ObjectAccordion title="Carrier" count={carrierFields.length} value={draft.carrier} fields={carrierFields} onChange={(f, v) => updateSection('carrier', f, v)} />
             <ObjectAccordion title="Rate data" count={rateDataFields.length} value={draft.rateData} fields={rateDataFields} onChange={(f, v) => updateSection('rateData', f, v)} />
@@ -311,11 +315,13 @@ function AccordionSection({
   title,
   defaultOpen = false,
   count,
+  required = false,
   children,
 }: {
   title: string
   defaultOpen?: boolean
   count: number
+  required?: boolean
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -328,7 +334,10 @@ function AccordionSection({
         className="flex w-full items-center justify-between py-3 text-left"
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-[var(--dk-ink)]">{title}</span>
+          <span className="text-sm font-semibold text-[var(--dk-ink)]">
+            {title}
+            {required && <span className="ml-1 text-[var(--dk-red)]">*</span>}
+          </span>
           <span className="rounded-md bg-[var(--dk-surface-raised)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--dk-ink-soft)]">
             {count}
           </span>
@@ -344,6 +353,7 @@ function ObjectAccordion({
   title,
   defaultOpen = false,
   count,
+  helperText,
   value,
   fields,
   onChange,
@@ -351,6 +361,7 @@ function ObjectAccordion({
   title: string
   defaultOpen?: boolean
   count: number
+  helperText?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -358,7 +369,8 @@ function ObjectAccordion({
   onChange: (field: string, value: Primitive) => void
 }) {
   return (
-    <AccordionSection title={title} defaultOpen={defaultOpen} count={count}>
+    <AccordionSection title={title} defaultOpen={defaultOpen} count={count} required={fields.some((field) => field.required)}>
+      {helperText && <p className="mb-3 text-xs text-[var(--dk-ink-soft)]">{helperText}</p>}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {fields.map((field) => (
           <PrimitiveField
@@ -369,6 +381,7 @@ function ObjectAccordion({
             step={field.step}
             mono={field.mono}
             value={value[field.key] as Primitive}
+            required={field.required}
             onChange={(v) => onChange(field.key, v)}
           />
         ))}
@@ -379,45 +392,51 @@ function ObjectAccordion({
 
 // ---------- field primitives ----------
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-medium text-[var(--dk-ink)]">{label}</Label>
+      <Label className="text-xs font-medium text-[var(--dk-ink)]">
+        {label}
+        {required && <span className="ml-1 text-[var(--dk-red)]">*</span>}
+      </Label>
       {children}
     </div>
   )
 }
 
 function PrimitiveField({
-  label, type = 'text', value, onChange, placeholder, step, mono,
+  label, type = 'text', value, onChange, placeholder, step, mono, required,
 }: {
   label: string; type?: FieldType; value: Primitive; onChange: (v: Primitive) => void
-  placeholder?: string; step?: string; mono?: boolean
+  placeholder?: string; step?: string; mono?: boolean; required?: boolean
 }) {
   if (type === 'checkbox') {
     return (
       <label className="flex h-9 items-center gap-2 rounded-lg border border-[var(--dk-line-strong)] bg-white px-3 text-sm text-[var(--dk-ink)]">
         <input type="checkbox" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} className="size-4 rounded border-[var(--dk-line-strong)]" />
-        <span>{label}</span>
+        <span>
+          {label}
+          {required && <span className="ml-1 text-[var(--dk-red)]">*</span>}
+        </span>
       </label>
     )
   }
   if (type === 'textarea') {
     return (
-      <Field label={label}>
+      <Field label={label} required={required}>
         <Textarea value={String(value)} onChange={(e) => onChange(e.target.value)} className="min-h-16 rounded-lg border-[var(--dk-line-strong)] bg-white text-sm" placeholder={placeholder} />
       </Field>
     )
   }
   if (type === 'number') {
     return (
-      <Field label={label}>
+      <Field label={label} required={required}>
         <Input type="number" step={step} value={String(value)} onChange={(e) => onChange(parseNumber(e.target.value))} className="h-9 rounded-lg border-[var(--dk-line-strong)] bg-white text-sm" placeholder={placeholder} />
       </Field>
     )
   }
   return (
-    <Field label={label}>
+    <Field label={label} required={required}>
       <Input value={String(value)} onChange={(e) => onChange(e.target.value)} className={`h-9 rounded-lg border-[var(--dk-line-strong)] bg-white text-sm ${mono ? 'font-mono text-xs' : ''}`} placeholder={placeholder} />
     </Field>
   )
